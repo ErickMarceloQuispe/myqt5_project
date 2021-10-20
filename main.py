@@ -1,3 +1,4 @@
+import sqlite3
 import sys
 import os
 
@@ -7,14 +8,17 @@ from PyQt5 import uic
 from PyQt5 import QtGui,QtCore 
 from PyQt5.QtGui import QCursor 
 
+DB_FILE_NAME="raws_numbers.db"
+TABLE_NAME="raws_numbers"
+UI_FILE_NAME="ui_main.ui"
+
+FOLDER_NAME="Archivos/"
+
 EXTENSIONS=[".xlsx"]
 LABEL_FILE_CB="--Seleccionar Archivo--"
 LABEL_SHEET_CB="--Seleccionar Hoja--"
 LABEL_TYPE_CB="--Seleccionar Tipo de Documento--"
 LABEL_WAITING="En espera"
-
-#RAWS_FORMATO_NIÑOS=[13, 16, 21, 29, 33, 45, 50, 58, 63, 71, 76, 86, 90, 114, 119, 135, 140, 150, 155, 159, 165, 166, 173, 180, 187, 194, 200, 201, 206, 209, 214, 215, 223, 229, 233, 238, 245, 246, 252, 255, 260, 262, 267, 284, 287, 291, 296, 305, 310, 315, 319, 323, 329, 331, 338, 349, 355, 357, 362, 364, 369, 371, 376, 387, 392, 394, 400, 401, 407, 408, 415, 419, 425, 428]
-#RAWS_NUTRICION=[11, 20, 24, 27, 32, 37, 40, 58, 61, 74, 78, 98, 101, 130, 134, 163, 167, 182, 185, 193, 197,201,205,206,209, 216, 222, 234, 238, 244, 247, 253]
 
 def get_raws(input_sheet,end_row):
     raw_range=input_sheet["A1:A"+str(end_row)]
@@ -78,7 +82,7 @@ def format_data_range(input_sheet,output_sheet,start_row,end_row):
 class AppDemo(QMainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi("demo1.ui",self)
+        uic.loadUi(UI_FILE_NAME,self)
 
         self.input_book=None
         self.output_book=None
@@ -86,10 +90,14 @@ class AppDemo(QMainWindow):
         self.output_sheet=None
         self.raws_arr=None
 
-        self.arrays={
-            "Niños":[13, 16, 21, 29, 33, 45, 50, 58, 63, 71, 76, 86, 90, 114, 119, 135, 140, 150, 155, 159, 165, 166, 173, 180, 187, 194, 200, 201, 206, 209, 214, 215, 223, 229, 233, 238, 245, 246, 252, 255, 260, 262, 267, 284, 287, 291, 296, 305, 310, 315, 319, 323, 329, 331, 338, 349, 355, 357, 362, 364, 369, 371, 376, 387, 392, 394, 400, 401, 407, 408, 415, 419, 425, 428],
-            "Nutricion":[11, 20, 24, 27, 32, 37, 40, 58, 61, 74, 78, 98, 101, 130, 134, 163, 167, 182, 185, 193, 197,201,205,206,209, 216, 222, 234, 238, 244, 247, 253]
-        }
+        conn = sqlite3.connect(DB_FILE_NAME)
+        c=conn.cursor()
+
+        self.arrays=self.getArrsObject(c)
+        conn.commit()
+        conn.close()
+
+        #SQLite
         self.comboBoxFilesIn.addItem(LABEL_FILE_CB)
         self.comboBoxFilesIn.addItems(self.get_file_names())
         self.comboBoxFilesIn.currentIndexChanged.connect(lambda:self.setFileIn())
@@ -114,7 +122,7 @@ class AppDemo(QMainWindow):
         if(self.comboBoxFilesIn.currentText()==LABEL_FILE_CB):
             self.comboBoxSheetsIn.clear()
             return
-        self.input_book=load_workbook(filename=self.comboBoxFilesIn.currentText())
+        self.input_book=load_workbook(filename=FOLDER_NAME+self.comboBoxFilesIn.currentText())
         self.get_sheet_names(self.input_book,self.comboBoxSheetsIn)
 
     def setFileOut(self):
@@ -124,7 +132,7 @@ class AppDemo(QMainWindow):
         if(self.comboBoxFilesOut.currentText()==LABEL_FILE_CB):
             self.comboBoxSheetsOut.clear()
             return
-        self.output_book=load_workbook(filename=self.comboBoxFilesOut.currentText())
+        self.output_book=load_workbook(filename=FOLDER_NAME+self.comboBoxFilesOut.currentText())
         self.get_sheet_names(self.output_book,self.comboBoxSheetsOut)
     
     def setSheet(self):
@@ -142,7 +150,7 @@ class AppDemo(QMainWindow):
             self.status_label.setText("Información Faltante")
             return    
         grupal_formate_date(self.raws_arr,self.input_sheet,self.output_sheet)
-        self.output_book.save(self.comboBoxFilesOut.currentText())
+        self.output_book.save(FOLDER_NAME+self.comboBoxFilesOut.currentText())
         self.status_label.setText("Proceso Terminado")
         self.input_sheet=None
         self.output_sheet=None
@@ -156,7 +164,7 @@ class AppDemo(QMainWindow):
 
     def get_file_names(self):
         file_list=[]
-        for root, directories, filenames in os.walk("./"):
+        for root, directories, filenames in os.walk("./"+FOLDER_NAME):
             for filename in filenames:
                 if(any(ext in filename for ext in EXTENSIONS)):
                     file_list.append(filename)
@@ -167,6 +175,15 @@ class AppDemo(QMainWindow):
         combobox.addItem(LABEL_SHEET_CB)
         if book!=None:
             combobox.addItems(book.sheetnames)
+    
+    def getArrsObject(self,cursor):
+        cursor.execute(""" 
+            SELECT * FROM '{TABLE_NAME}'
+        """)
+        obj={}
+        for item in cursor.fetchall():
+            obj[item[0]]=[int(numeric_string) for numeric_string in item[1].split(",")]
+        return(obj)
 
 if __name__ == "__main__":
     app=QApplication(sys.argv)
