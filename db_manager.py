@@ -1,8 +1,5 @@
 import sqlite3
 
-conn = sqlite3.connect("raws_numbers.db")
-c=conn.cursor()
-
 TABLE_NAME="raws_numbers"
 
 def createTable(cursor):
@@ -53,14 +50,17 @@ def getArrsObject(cursor):
         obj[item[0]]=[int(numeric_string) for numeric_string in item[1].split(",")]
     return(obj)
 
+conn = sqlite3.connect("raws_numbers.db")
+c=conn.cursor()
+
 #dropTable(c)
 #createTable(c)
-#readTable(c)
+readTable(c)
 
 #getArrsObject(c)
 
-#storeArr(c,"Nutricion",[11, 20, 24, 27, 32, 37, 40, 58, 61, 74, 78, 98, 101, 130, 134, 163, 167, 182, 185, 193, 197,201,205,206,209, 216, 222, 234, 238, 244, 247, 253])
-#deleteArr(c,"Nutricion")
+# deleteArr(c,"Materno")
+#storeArr(c,"No Transmisible",[11, 27, 31, 34, 38, 41, 43, 47, 51, 54, 60, 65, 71, 74, 78, 80, 84, 86, 90, 97, 101, 105, 109, 115, 121, 131, 137, 142, 146, 155, 159, 168, 172, 177, 179, 186, 195, 198, 202, 204, 208, 211, 215, 218, 220, 222])
 
 conn.commit()
 conn.close()

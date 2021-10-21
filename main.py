@@ -20,6 +20,7 @@ LABEL_SHEET_CB="--Seleccionar Hoja--"
 LABEL_TYPE_CB="--Seleccionar Tipo de Documento--"
 LABEL_WAITING="En espera"
 
+#Used to get raws of the files - Needs Manual Marks
 def get_raws(input_sheet,end_row):
     raw_range=input_sheet["A1:A"+str(end_row)]
     raws_numbers=[]
@@ -30,6 +31,7 @@ def get_raws(input_sheet,end_row):
     print(raws_numbers)
     return raws_numbers
 
+#Get cell's values of a raw range
 def get_data(raw_range):
     cols=get_cols_with_info(raw_range)
     data=[]
@@ -46,6 +48,7 @@ def get_data(raw_range):
         data.append(aux)
     return(data)
 
+#
 def print_data(data):
     for raw in data:
         text_raw=""
@@ -185,6 +188,10 @@ class AppDemo(QMainWindow):
             obj[item[0]]=[int(numeric_string) for numeric_string in item[1].split(",")]
         return(obj)
 
+# input_sheet=load_workbook(filename="Archivos/Abr No_Trasmisible_GERESA.xlsx")["No_Trasmisible_2020"]
+# get_raws(input_sheet,230)
+# raise SystemExit
+
 if __name__ == "__main__":
     app=QApplication(sys.argv)
 
@@ -195,3 +202,4 @@ if __name__ == "__main__":
         sys.exit(app.exec_())
     except SystemExit:
         print("Cerrando Ventana")
+
