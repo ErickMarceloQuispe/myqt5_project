@@ -188,8 +188,8 @@ class AppDemo(QMainWindow):
             obj[item[0]]=[int(numeric_string) for numeric_string in item[1].split(",")]
         return(obj)
 
-# input_sheet=load_workbook(filename="Archivos/Abr No_Trasmisible_GERESA.xlsx")["No_Trasmisible_2020"]
-# get_raws(input_sheet,230)
+# input_sheet=load_workbook(filename="Archivos/Abr Salud Mental GERESA.xlsx")["Salud Mental 2021"]
+# get_raws(input_sheet,460)
 # raise SystemExit
 
 if __name__ == "__main__":
