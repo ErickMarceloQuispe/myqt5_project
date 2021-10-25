@@ -181,14 +181,14 @@ class AppDemo(QMainWindow):
     
     def getArrsObject(self,cursor):
         cursor.execute(""" 
-            SELECT * FROM '{TABLE_NAME}'
+            SELECT * FROM '{TABLE_NAME}' ORDER BY type
         """)
         obj={}
         for item in cursor.fetchall():
             obj[item[0]]=[int(numeric_string) for numeric_string in item[1].split(",")]
         return(obj)
 
-# input_sheet=load_workbook(filename="Archivos/Abr Salud Mental GERESA.xlsx")["Salud Mental 2021"]
+# input_sheet=load_workbook(filename="Archivos/Abr-May Metales Pesados GERSA 2021.xlsx")["Hoja1"]
 # get_raws(input_sheet,460)
 # raise SystemExit
 
