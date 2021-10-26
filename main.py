@@ -39,7 +39,7 @@ def get_data(raw_range):
         aux=[]
         for col in cols:
             info=row[col].value
-            #Agregar 0s en los espacios vacíos detectados
+            #Add 0 on empty detected spaces
             #if(info==None):
             #    aux.append(0)
             #else:
@@ -48,7 +48,7 @@ def get_data(raw_range):
         data.append(aux)
     return(data)
 
-#
+#Function to help sheet input info visualization
 def print_data(data):
     for raw in data:
         text_raw=""
@@ -56,7 +56,7 @@ def print_data(data):
             text_raw=text_raw+"|"+str(info)
         print(text_raw)
 
-
+#Define which columns in a raw range have info to copy
 def get_cols_with_info(raw_range):
     cols=[]
     for i in range(len(raw_range)):
@@ -67,32 +67,38 @@ def get_cols_with_info(raw_range):
     cols.sort()
     return cols
 
+#Copy each data array value in output sheet
 def save_results(output_sheet,data,start_row):
     for i in range(len(data)):
         for j in range(len(data[i])):
             output_sheet.cell(row=start_row+i, column=j+1,value=data[i][j])
     return
 
+#Init other services to specifics columns in arr
 def grupal_formate_date(arr,input_sheet,output_sheet):
     for i in range(0,len(arr),2):
         format_data_range(input_sheet,output_sheet,arr[i],arr[i+1])
 
+#Select a raw range to save
 def format_data_range(input_sheet,output_sheet,start_row,end_row):
     raw_range=input_sheet[str(start_row)+":"+str(end_row)]
     save_results(output_sheet,get_data(raw_range),start_row)
     return
 
+#Main Interface Class
 class AppDemo(QMainWindow):
     def __init__(self):
         super().__init__()
         uic.loadUi(UI_FILE_NAME,self)
-
+        
+        #Attributes
         self.input_book=None
         self.output_book=None
         self.input_sheet=None
         self.output_sheet=None
         self.raws_arr=None
 
+        #Get raws numbers from database
         conn = sqlite3.connect(DB_FILE_NAME)
         c=conn.cursor()
 
@@ -100,7 +106,7 @@ class AppDemo(QMainWindow):
         conn.commit()
         conn.close()
 
-        #SQLite
+        #Combo box and button implementation
         self.comboBoxFilesIn.addItem(LABEL_FILE_CB)
         self.comboBoxFilesIn.addItems(self.get_file_names())
         self.comboBoxFilesIn.currentIndexChanged.connect(lambda:self.setFileIn())
@@ -118,6 +124,7 @@ class AppDemo(QMainWindow):
 
         self.button.clicked.connect(lambda:self.startApp())
 
+    #Define the file input
     def setFileIn(self):
         self.status_label.setText(LABEL_WAITING)
         if not self.input_sheet==None:
@@ -128,6 +135,7 @@ class AppDemo(QMainWindow):
         self.input_book=load_workbook(filename=FOLDER_NAME+self.comboBoxFilesIn.currentText())
         self.get_sheet_names(self.input_book,self.comboBoxSheetsIn)
 
+    #Define the file output
     def setFileOut(self):
         self.status_label.setText(LABEL_WAITING)
         if not self.output_sheet==None:
@@ -138,6 +146,7 @@ class AppDemo(QMainWindow):
         self.output_book=load_workbook(filename=FOLDER_NAME+self.comboBoxFilesOut.currentText())
         self.get_sheet_names(self.output_book,self.comboBoxSheetsOut)
     
+    #Define input and output sheets
     def setSheet(self):
         self.status_label.setText(LABEL_WAITING)
         if (not self.input_book==None)and(not self.comboBoxSheetsIn==None):
@@ -147,6 +156,7 @@ class AppDemo(QMainWindow):
             if(not self.comboBoxSheetsOut.currentText()=="")and(not self.comboBoxSheetsOut.currentText()==LABEL_SHEET_CB):
                 self.output_sheet=self.output_book[self.comboBoxSheetsOut.currentText()]
 
+    #Button to Start the main functionality
     def startApp(self):
         isLessInfo=(self.input_book==None)or(self.output_book==None)or(self.input_sheet==None)or(self.output_sheet==None)or(self.raws_arr==None)
         if(isLessInfo):
@@ -158,6 +168,7 @@ class AppDemo(QMainWindow):
         self.input_sheet=None
         self.output_sheet=None
 
+    #Combo Box type functionality
     def setType(self):
         self.status_label.setText(LABEL_WAITING)
         if(self.comboBoxTypes.currentText()==LABEL_TYPE_CB):
@@ -165,6 +176,7 @@ class AppDemo(QMainWindow):
         else:
             self.raws_arr=self.arrays[self.comboBoxTypes.currentText()]
 
+    #Return files names array in FOLDER_NAME with extension in EXTENSIONS
     def get_file_names(self):
         file_list=[]
         for root, directories, filenames in os.walk("./"+FOLDER_NAME):
@@ -173,12 +185,14 @@ class AppDemo(QMainWindow):
                     file_list.append(filename)
         return file_list
 
+    #Put sheet names in a specific combobox
     def get_sheet_names(self,book,combobox):
         combobox.clear()
         combobox.addItem(LABEL_SHEET_CB)
         if book!=None:
             combobox.addItems(book.sheetnames)
     
+    #Get an object with all database info about type arrays
     def getArrsObject(self,cursor):
         cursor.execute(""" 
             SELECT * FROM '{TABLE_NAME}' ORDER BY type
@@ -188,10 +202,12 @@ class AppDemo(QMainWindow):
             obj[item[0]]=[int(numeric_string) for numeric_string in item[1].split(",")]
         return(obj)
 
+#Script to get raws using * symbol
 # input_sheet=load_workbook(filename="Archivos/Abr-May Metales Pesados GERSA 2021.xlsx")["Hoja1"]
 # get_raws(input_sheet,460)
 # raise SystemExit
 
+#Execute Main Program
 if __name__ == "__main__":
     app=QApplication(sys.argv)
 
